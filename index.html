@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a110e" />
+  <title>AvianAcoustics · Off-grid bird-call monitoring</title>
+  <meta name="description" content="A solar-powered field recorder that listens all day, sends only the bird calls over 4G, and names every species with BirdNET." />
+  <meta property="og:title" content="AvianAcoustics · Off-grid bird-call monitoring" />
+  <meta property="og:description" content="Listens all day, sends only the bird calls over 4G, names every species with BirdNET." />
+  <meta property="og:image" content="assets/video/field.jpg" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- SVG symbols ------------------------------------------------------>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="aa-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1a7347"/><stop offset="1" stop-color="#0f3d2a"/></linearGradient>
+    <linearGradient id="aa-bird" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9f2db"/><stop offset="1" stop-color="#4fd08b"/></linearGradient>
+  </defs>
+  <symbol id="logo" viewBox="0 0 48 48">
+    <rect width="48" height="48" rx="12" fill="url(#aa-bg)"/>
+    <path d="M11 29c0-6.4 5-11.4 11.3-11.4 2.6 0 4.7.9 6.2 2.2l4.4-1.2-2.4 3.7c.5 1.3.7 2.6.7 3.9 0 6.5-5.4 10.8-11.6 10.8H11l3.4-3.6C12.3 32.7 11 31 11 29z" fill="url(#aa-bird)"/>
+    <circle cx="25.5" cy="22.6" r="1.4" fill="#0f3d2a"/>
+    <path d="M16 31.5c3.2 1.4 7.3 1.2 10.3-1.1" stroke="#0f3d2a" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <path d="M36 15.5c2 2 3.2 4.7 3.2 7.6s-1.2 5.6-3.2 7.6" stroke="#7fe0ab" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.9"/>
+    <path d="M39.6 11.8c3 2.9 4.8 6.9 4.8 11.3s-1.8 8.4-4.8 11.3" stroke="#4fd08b" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.55"/>
+  </symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 7v10M21 12h0"/></symbol>
+  <symbol id="i-queue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="4" rx="1.5"/><rect x="4" y="10" width="16" height="4" rx="1.5"/><rect x="4" y="16" width="16" height="4" rx="1.5"/></symbol>
+  <symbol id="i-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20v-3M9.5 20v-6M14 20v-9M18.5 20V5"/></symbol>
+  <symbol id="i-bird" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c0-4 3-7 7-7 1.6 0 3 .6 3.9 1.4L18 7.6l-1.5 2.3c.3.8.5 1.6.5 2.4 0 4-3.4 6.7-7.2 6.7H4l2.1-2.2C4.8 16.2 4 15.2 4 14z"/><circle cx="12.6" cy="10.8" r=".6" fill="currentColor"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 15l3-3 3 2 4-5"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-13 15-14-1 10-6 15-14 15"/><path d="M5 19l7-7"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7.5 15h9"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.4-6-11a6 6 0 0 1 12 0c0 5.6-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9M12 12c0-4-3-6-7-6 0 4 3 6 7 6zM12 14c0-4 3-6 7-6 0 4-3 6-7 6z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.2 3.2 0 0 1 0 6.2M21 20c0-2.7-1.6-5-4-5.7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+</svg>
+
+<!-- Navigation ------------------------------------------------------>
+<header class="navbar">
+  <div class="wrap navbar-inner">
+    <a href="#top" class="brand" aria-label="AvianAcoustics home">
+      <svg width="34" height="34" role="img" aria-hidden="true"><use href="#logo"/></svg>
+      <span>Avian<span class="brand-accent">Acoustics</span></span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a class="nav-link opt" href="#why">Why</a>
+      <a class="nav-link" href="#how">How it works</a>
+      <a class="nav-link" href="#try">Try it</a>
+      <a class="nav-link" href="#action">In action</a>
+      <a class="nav-link opt" href="#dashboard">Dashboard</a>
+      <a class="nav-link" href="#hardware">Hardware</a>
+    </nav>
+    <a class="button button-secondary button-small nav-gh" href="https://github.com/Harshana1004/birdcall-monitoring-system" target="_blank" rel="noopener">GitHub ↗</a>
+    <button class="menu-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-nav">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Sections">
+    <a class="nav-link" href="#why">Why it matters</a>
+    <a class="nav-link" href="#how">How it works</a>
+    <a class="nav-link" href="#try">Try the detector</a>
+    <a class="nav-link" href="#action">See it in action</a>
+    <a class="nav-link" href="#dashboard">Dashboard</a>
+    <a class="nav-link" href="#hardware">Hardware</a>
+    <a class="nav-link" href="https://github.com/Harshana1004/birdcall-monitoring-system" target="_blank" rel="noopener">Source on GitHub ↗</a>
+  </nav>
+</header>
+
+<main id="top">
+
+<!-- Hero ------------------------------------------------------------>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="badge"><span class="live-dot"></span>Working prototype · field node reporting live</span>
+      <h1>Avian<span class="accent">Acoustics</span></h1>
+      <p class="hero-tagline">Off-grid bird-call monitoring at the edge.</p>
+      <p class="hero-lede">A solar-powered recorder that listens to the forest all day, picks out the bird calls on the device, sends only those over 4G, and names every species with BirdNET.</p>
+      <div class="chips">
+        <span class="chip">Solar powered</span>
+        <span class="chip">4G connected</span>
+        <span class="chip">On-device detection</span>
+        <span class="chip">BirdNET species ID</span>
+      </div>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#action">See it in action ↓</a>
+        <a class="button button-secondary" href="#try">Try the detector</a>
+        <a class="button button-ghost" href="https://github.com/Harshana1004/birdcall-monitoring-system" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      </div>
+      <div class="hero-wave" aria-hidden="true" id="hero-wave"></div>
+    </div>
+
+    <div>
+      <div class="media-card">
+        <video src="assets/video/field.mp4" poster="assets/video/field.jpg" autoplay muted loop playsinline aria-label="The AvianAcoustics node placed among tree roots in the field"></video>
+        <span class="media-label"><span class="live-dot"></span>Deployed in the field</span>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card accent"><span class="stat-value">25 %</span><span class="stat-label">of the audio sent</span></div>
+        <div class="stat-card accent"><span class="stat-value">≈ 25 s</span><span class="stat-label">call → dashboard</span></div>
+        <div class="stat-card accent"><span class="stat-value">0</span><span class="stat-label">Wi-Fi or cables</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 Why ---------------------------------------------------------->
+<section class="block" id="why">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">01 · Why it matters</span>
+      <h2>Birds tell us how healthy a forest is</h2>
+      <p>Ecologists survey forests by listening. But a recorder that keeps everything drowns in audio, and someone still has to hike in, collect the cards and listen through it all.</p>
+    </div>
+
+    <div class="why-grid">
+      <div class="big-number reveal">
+        <span class="eyebrow">Only the bird calls are sent</span>
+        <div class="value"><span id="pct-counter">25</span> %</div>
+        <div class="label">of the audio was bird calls, and only that left the device</div>
+        <p>Recording everything, 24/7, would mean about 83 GB of audio a month per recorder. The node listens to all of it but sends only the regions that contain calls. The other 75 % never leaves the box.</p>
+        <div class="tile-grid" id="tile-grid" aria-hidden="true"></div>
+        <div class="tile-legend">
+          <span><i class="dot dot-rec"></i>Recorded and discarded on the device</span>
+          <span class="accent"><i class="dot dot-sent"></i>Bird calls, sent over 4G</span>
+        </div>
+        <p class="foot">25 % in the demo recording (51 s of 3 min 21 s). The share depends on how busy the soundscape is.</p>
+      </div>
+
+      <div class="problems">
+        <div class="problem-row reveal"><div class="ps"><span class="tag">Problem</span>Continuous recording fills storage and data plans</div><div class="sol"><span class="tag">AvianAcoustics</span>Detects calls on the device and sends only those regions</div></div>
+        <div class="problem-row reveal"><div class="ps"><span class="tag">Problem</span>Field trips to swap SD cards; results weeks later</div><div class="sol"><span class="tag">AvianAcoustics</span>Uploads over 4G LTE; a species shows up in about 25 seconds</div></div>
+        <div class="problem-row reveal"><div class="ps"><span class="tag">Problem</span>No mains power or Wi-Fi in the forest</div><div class="sol"><span class="tag">AvianAcoustics</span>Li-ion battery topped up by a small solar panel, cellular modem</div></div>
+        <div class="problem-row reveal"><div class="ps"><span class="tag">Problem</span>Hours of audio for an expert to listen through</div><div class="sol"><span class="tag">AvianAcoustics</span>BirdNET names each call with a confidence score</div></div>
+        <div class="problem-row reveal"><div class="ps"><span class="tag">Problem</span>Global models “hear” birds that don't live here</div><div class="sol"><span class="tag">AvianAcoustics</span>Location filter limits answers to species of that Sri Lankan district and week</div></div>
+        <div class="problem-row reveal"><div class="ps"><span class="tag">Problem</span>Patchy coverage loses data</div><div class="sol"><span class="tag">AvianAcoustics</span>Store-and-forward queue retries until the upload lands</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 How ---------------------------------------------------------->
+<section class="block" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">02 · How it works</span>
+      <h2>From a bird call to a species, automatically</h2>
+      <p>The node does the listening and filtering. The server does the identifying. Only short snippets travel between them.</p>
+    </div>
+
+    <div class="pipeline reveal" id="pipeline">
+      <span class="pulse" aria-hidden="true"></span>
+      <div class="stage"><div class="stage-icon"><svg width="30" height="30"><use href="#i-mic"/></svg></div><span class="where">Node</span><h3>Listen</h3><p>MEMS mic sampled at 16 kHz in back-to-back 10 s windows</p></div>
+      <div class="stage"><div class="stage-icon"><svg width="30" height="30"><use href="#i-wave"/></svg></div><span class="where">Node</span><h3>Find calls</h3><p>Energy-based detector marks regions of interest</p></div>
+      <div class="stage"><div class="stage-icon"><svg width="30" height="30"><use href="#i-queue"/></svg></div><span class="where">Node</span><h3>Queue</h3><p>Snippets wait in a PSRAM ring buffer until sent</p></div>
+      <div class="stage"><div class="stage-icon"><svg width="30" height="30"><use href="#i-signal"/></svg></div><span class="where">4G LTE</span><h3>Send</h3><p>WAV + metadata posted to the REST API</p></div>
+      <div class="stage"><div class="stage-icon"><svg width="30" height="30"><use href="#i-bird"/></svg></div><span class="where">Server</span><h3>Identify</h3><p>BirdNET 2.4 with a location-and-week species filter</p></div>
+      <div class="stage"><div class="stage-icon"><svg width="30" height="30"><use href="#i-chart"/></svg></div><span class="where">Web</span><h3>Explore</h3><p>Live feed, charts and playable snippets</p></div>
+    </div>
+
+    <div class="split">
+      <div class="card detail-card reveal">
+        <h3><span class="eyebrow">On the node</span> ESP32-S3 firmware</h3>
+        <p class="sub">C++ / PlatformIO. Bit-exact with the Python reference used for evaluation.</p>
+        <ol class="steps">
+          <li><strong>Capture.</strong> INMP441 over I²S, a 20 Hz DC-blocker, then double-buffered 10 s windows handed from a capture task to a processing task.</li>
+          <li><strong>High-pass for detection.</strong> A 4th-order 1 kHz filter removes wind and rumble on a <em>copy</em>. The uploaded audio stays unfiltered.</li>
+          <li><strong>Short-time energy.</strong> 25 ms frames every 10 ms, smoothed over 15 frames.</li>
+          <li><strong>Adaptive threshold.</strong> Regions start and end at <code>2 × median</code> of that window, merge across gaps under 0.5 s, and are kept only if the peak reaches <code>4 × median</code> and an absolute dBFS floor.</li>
+          <li><strong>Trim & pad.</strong> Drop regions shorter than 0.5 s, pad 0.25 s either side, convert to 16-bit WAV.</li>
+          <li><strong>Store & forward.</strong> A 4 MB PSRAM ring (about 131 s of snippets) feeds the SIMCom A7670 modem. Retries back off from 5 s to 2 min.</li>
+        </ol>
+      </div>
+      <div class="card detail-card reveal">
+        <h3><span class="eyebrow">On the server</span> FastAPI + BirdNET</h3>
+        <p class="sub">Async Python, PostgreSQL, Alembic migrations, React dashboard.</p>
+        <ol class="steps">
+          <li><strong>Upload.</strong> <code>POST /api/v1/recordings</code> with a device key. Validates the WAV, dedupes by checksum, stores the snippet as <em>pending</em>.</li>
+          <li><strong>Pad to 3 s.</strong> BirdNET listens in 3-second windows, so shorter snippets are centre-padded with silence.</li>
+          <li><strong>Location filter.</strong> BirdNET's geo model lists the species expected at the device's coordinates, district or province for that week of the year.</li>
+          <li><strong>Classify.</strong> BirdNET 2.4 runs in a background thread, keeping up to 5 species per window above 0.25 confidence.</li>
+          <li><strong>Store detections.</strong> Each species, confidence and time offset is saved and the recording is marked <em>completed</em>.</li>
+          <li><strong>Serve.</strong> REST endpoints power the dashboard's live feed, per-device stats and daily activity charts.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 Try it ------------------------------------------------------->
+<section class="block" id="try">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">03 · Try it</span>
+      <h2>Play with the on-device detector</h2>
+      <p>This runs the firmware's detection algorithm in your browser, on a synthetic 10-second soundscape: forest hiss, gusts of wind and a handful of birds. Change the settings and hear what the node would send.</p>
+    </div>
+
+    <div class="card demo reveal">
+      <div class="demo-top">
+        <div class="control-group">
+          <span class="control-label">Peak gate</span>
+          <div class="segmented" role="group" aria-label="Peak gate" id="gate">
+            <button type="button" data-v="2" aria-pressed="false">×2</button>
+            <button type="button" data-v="4" aria-pressed="true">×4 · deployed</button>
+            <button type="button" data-v="8" aria-pressed="false">×8</button>
+          </div>
+        </div>
+        <label class="switch"><input type="checkbox" id="hpf" checked /><span class="track"></span>1 kHz high-pass</label>
+        <div class="control-group">
+          <span class="control-label">Wind</span>
+          <input type="range" id="wind" min="0" max="100" value="45" aria-label="Wind strength" />
+        </div>
+        <span style="flex:1"></span>
+        <button type="button" class="button button-ghost button-small" id="regen">↻ New soundscape</button>
+      </div>
+
+      <div class="demo-canvas-wrap">
+        <canvas id="demo-canvas" height="320" aria-label="Waveform and short-time energy with detected regions highlighted"></canvas>
+        <div class="canvas-caption">
+          <span class="legend">
+            <span><i style="background:#4fd08b"></i>sent to the server</span>
+            <span><i style="background:#3a5a4d"></i>stays on the device</span>
+            <span><i style="background:#b5e655"></i>2 × median</span>
+            <span><i style="background:#e3b45b"></i>peak gate</span>
+          </span>
+          <span>top: waveform · bottom: smoothed energy (dB)</span>
+        </div>
+      </div>
+
+      <div class="demo-bottom">
+        <div class="demo-stats">
+          <div class="stat-card"><span class="stat-value">10.0 s</span><span class="stat-label">recorded</span></div>
+          <div class="stat-card accent"><span class="stat-value" id="s-rois">–</span><span class="stat-label">regions of interest</span></div>
+          <div class="stat-card accent"><span class="stat-value" id="s-sent">–</span><span class="stat-label" id="s-sent-l">sent over 4G</span></div>
+          <div class="stat-card"><span class="stat-value" id="s-rej">–</span><span class="stat-label">rejected by the gate</span></div>
+        </div>
+        <div class="demo-actions">
+          <button type="button" class="button button-secondary" id="play-all">▶ Play all 10 s</button>
+          <button type="button" class="button button-primary" id="play-sent">▶ Play only what's sent</button>
+        </div>
+      </div>
+      <div class="demo-note" id="demo-note" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 In action ---------------------------------------------------->
+<section class="block" id="action">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">04 · See it in action</span>
+      <h2>Real hardware, real detections</h2>
+      <p>Clips from the project reel: the node hearing a call and the dashboard naming the bird, uploading a recording by hand, and setting the node up.</p>
+    </div>
+
+    <div class="player reveal">
+      <div class="tabs" role="tablist" aria-label="Clips">
+        <button class="tab" role="tab" aria-selected="true" data-src="live" data-caption="A Common Myna call is played near the node. It detects the call, sends a 2.4 s snippet over 4G, and the dashboard shows “Common Myna” about 25 s after the call.">
+          <div class="t">Call → species <span>0:14</span></div><div class="d">Live end-to-end detection</div>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" data-src="roi" data-caption="On a 3 min 21 s recording the node finds 32 regions of interest and sends 51 s, 25 % of the audio. The rest never leaves the device.">
+          <div class="t">What gets sent <span>0:08</span></div><div class="d">Regions of interest, visualised</div>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" data-src="dashboard" data-caption="Upload any recording. The server runs the same region detection and BirdNET, then shows every region with its species, confidence and a playable snippet, plus the waveform and energy behind it.">
+          <div class="t">Analyse a recording <span>0:16</span></div><div class="d">Manual upload on the dashboard</div>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" data-src="setup" data-caption="Inside the weatherproof enclosure: insert the nano SIM with the power off, then flip the switch. The status lights confirm it's running and it connects over 4G on its own.">
+          <div class="t">Setting up the node <span>0:12</span></div><div class="d">SIM in, switch on</div>
+        </button>
+      </div>
+      <div>
+        <div class="media-card">
+          <video id="player" src="assets/video/live.mp4" poster="assets/video/live.jpg" muted loop playsinline preload="metadata" controls></video>
+        </div>
+        <p class="player-caption" id="player-caption">A Common Myna call is played near the node. It detects the call, sends a 2.4 s snippet over 4G, and the dashboard shows “Common Myna” about 25 s after the call.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 Dashboard ---------------------------------------------------->
+<section class="block" id="dashboard">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">05 · What you get</span>
+      <h2>A dashboard for every call the forest makes</h2>
+      <p>A React web app on top of the API, built for researchers who want answers, not audio files.</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature reveal"><span class="num">01</span><h3>Live detection feed</h3><p>New species appear as snippets are processed, newest first, refreshing on their own.</p></div>
+      <div class="feature reveal"><span class="num">02</span><h3>Playable evidence</h3><p>Every detection keeps its snippet. Press play and hear exactly what BirdNET heard.</p></div>
+      <div class="feature reveal"><span class="num">03</span><h3>Species activity</h3><p>Top species and daily activity charts per device and across the network.</p></div>
+      <div class="feature reveal"><span class="num">04</span><h3>Device health</h3><p>Last upload, recordings, detections and the region each node covers.</p></div>
+      <div class="feature reveal"><span class="num">05</span><h3>Analyse any recording</h3><p>Upload a WAV or MP3 from anywhere and get every region identified.</p></div>
+      <div class="feature reveal"><span class="num">06</span><h3>See the detection</h3><p>Waveform, short-time energy and the regions sent to BirdNET, side by side.</p></div>
+      <div class="feature reveal"><span class="num">07</span><h3>Location-aware</h3><p>Pick a Sri Lankan district or province so only species that occur there count.</p></div>
+      <div class="feature reveal"><span class="num">08</span><h3>Accounts & sharing</h3><p>Personal devices, shared devices, analysis history and an admin view.</p></div>
+    </div>
+
+    <div class="detection-demo">
+      <div class="card reveal">
+        <span class="eyebrow">Recent detections</span>
+        <div class="det-feed" id="det-feed" aria-live="polite"></div>
+        <p class="foot">Illustrative feed in the dashboard's style.</p>
+      </div>
+      <div class="media-card reveal">
+        <video src="assets/video/dashboard.mp4" poster="assets/video/dashboard.jpg" muted loop playsinline preload="none" data-autoplay aria-label="Dashboard manual analysis walkthrough"></video>
+        <span class="media-label">Manual analysis · real dashboard</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 Hardware ----------------------------------------------------->
+<section class="block" id="hardware">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">06 · Under the hood</span>
+      <h2>A sealed box that runs on sunlight</h2>
+      <p>Off-the-shelf modules on a hand-wired board inside a weatherproof enclosure. Everything you need is on the outside: a power switch, a microphone hole and a USB-C port.</p>
+    </div>
+
+    <div class="hw-grid">
+      <div class="board reveal" id="board" role="button" tabindex="0" aria-pressed="false" aria-label="Tap to power the board on">
+        <img src="assets/img/inside.jpg" alt="Inside the enclosure: ESP32-S3 board, A7670 4G modem, INMP441 microphone and 18650 battery on perfboard" width="600" height="1000" />
+        <img class="on" src="assets/img/powered.jpg" alt="" width="600" height="1000" />
+        <span class="hotspot" style="left:47%;top:9%"><span>INMP441 mic</span></span>
+        <span class="hotspot" style="left:41%;top:23%"><span>A7670 4G modem</span></span>
+        <span class="hotspot" style="left:40%;top:60%"><span>ESP32-S3</span></span>
+        <span class="hotspot" style="left:79%;top:34%"><span>18650 cell</span></span>
+        <span class="board-hint" id="board-hint">⏻ Tap to power on</span>
+      </div>
+
+      <div>
+        <div class="hw-photos reveal">
+          <figure><img src="assets/img/sealed.jpg" alt="Sealed enclosure with power switch and microphone hole" width="976" height="560" loading="lazy" /><figcaption>Power switch and microphone hole</figcaption></figure>
+          <figure><img src="assets/img/ports.jpg" alt="Enclosure with USB-C charging port" width="976" height="560" loading="lazy" /><figcaption>Charges from a solar panel or a wall adapter over USB-C</figcaption></figure>
+        </div>
+
+        <div class="terminal reveal">
+          <div class="terminal-bar"><i></i><i></i><i></i><b>esp32-dsp-1.3.1</b></div>
+          <div class="terminal-body">
+            <div><span class="prompt">$</span> avianacoustics --spec</div>
+            <dl class="spec">
+              <dt>MCU</dt><dd>ESP32-S3, dual core, PSRAM</dd>
+              <dt>Microphone</dt><dd>INMP441 I²S MEMS, 16 kHz mono</dd>
+              <dt>Uplink</dt><dd>SIMCom A7670C 4G LTE (FS-MCore), HTTP over the modem's TCP stack</dd>
+              <dt>Power</dt><dd>18650 Li-ion, solar panel or USB-C charging</dd>
+              <dt>Edge DSP</dt><dd>1 kHz high-pass · 25/10 ms short-time energy · 2× median extent · 4× peak gate</dd>
+              <dt>Queue</dt><dd>4 MB PSRAM ring, 256 entries, 5 s → 2 min retry back-off</dd>
+              <dt>Backend</dt><dd>FastAPI · async SQLAlchemy · PostgreSQL · Alembic, on an Azure VM</dd>
+              <dt>Classifier</dt><dd>BirdNET 2.4 (TensorFlow), ≥ 0.25 confidence, top 5</dd>
+              <dt>Geo filter</dt><dd>BirdNET geo model · 25 Sri Lankan districts · per week</dd>
+              <dt>Frontend</dt><dd>React 19 · Vite · Recharts</dd>
+            </dl>
+            <div style="margin-top:12px"><span class="prompt">$</span> <span class="cursor"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 Where -------------------------------------------------------->
+<section class="block" id="where">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">07 · Where it helps</span>
+      <h2>Made for places nobody can listen all day</h2>
+    </div>
+
+    <div class="use-grid">
+      <div class="use reveal"><h3><svg width="20" height="20"><use href="#i-leaf"/></svg>Biodiversity surveys</h3><p>Continuous species presence data instead of one-morning point counts.</p></div>
+      <div class="use reveal"><h3><svg width="20" height="20"><use href="#i-bird"/></svg>Endemic species</h3><p>Keep watch for Sri Lanka's endemics, like the Sri Lanka Blue-Magpie.</p></div>
+      <div class="use reveal"><h3><svg width="20" height="20"><use href="#i-sprout"/></svg>Restoration tracking</h3><p>See birds return as a replanted forest matures, month by month.</p></div>
+      <div class="use reveal"><h3><svg width="20" height="20"><use href="#i-flask"/></svg>Research</h3><p>Timestamped, located detections with the audio kept as evidence.</p></div>
+      <div class="use reveal"><h3><svg width="20" height="20"><use href="#i-map"/></svg>Remote sites</h3><p>Anywhere with a 4G signal and some sun. No Wi-Fi, no power line.</p></div>
+      <div class="use reveal"><h3><svg width="20" height="20"><use href="#i-users"/></svg>Education & citizen science</h3><p>Share a device with a class or a community and explore the results together.</p></div>
+    </div>
+
+    <div class="cta reveal">
+      <div>
+        <span class="badge"><span class="live-dot"></span>Live: real detections from the field node</span>
+        <h2 style="margin-top:14px">Explore the live dashboard</h2>
+        <p>See what the node has heard, or upload a recording of your own.</p>
+        <div class="url">avianacoustics.indonesiacentral.cloudapp.azure.com</div>
+      </div>
+      <div class="hero-actions" style="margin-top:0">
+        <a class="button button-primary" href="https://avianacoustics.indonesiacentral.cloudapp.azure.com" target="_blank" rel="noopener">Open dashboard ↗</a>
+        <a class="button button-secondary" href="https://github.com/Harshana1004/birdcall-monitoring-system" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <span>AvianAcoustics · Bird-call monitoring · Built by <a href="https://github.com/Harshana1004" target="_blank" rel="noopener">Harshana Gunawardena</a></span>
+    <span>Species identification by <a href="https://birdnet.cornell.edu/" target="_blank" rel="noopener">BirdNET</a></span>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>
